@@ -73,11 +73,11 @@ uint8_t finsleep = 0;
 #define WAITWIFI  60  //60 = 30s
 String mac4 = "";
 String mqtt_id = "0001";
-String mqtt_server = "20.231.17.181";
+String mqtt_server = "202.231.217.181";
 String mqtt_port = "1883";
-String mqtt_user = "ttmq";
-String mqtt_pass = "1122";
-String mqtt_topic = "/device1/vibration1";
+String mqtt_user = "aaaa";
+String mqtt_pass = "bbbb";
+String mqtt_topic = "/device1/ch1";
 
 #define VIP1  192
 #define VIP2  168
@@ -123,7 +123,7 @@ ulong wifistarttime = 0;
 
 uint8_t pwd_c;
 String wifissid = "LambdaNu";
-String wifipassword = "0818090157";
+String wifipassword = "01234567890";
 char pwd_ch;
 uint8_t cretry = 0;
 
@@ -143,22 +143,6 @@ WebServer server(80);
 
 // Variable to store the HTTP request
 String header;
-
-/* Style */
-String style =
-"<style>#file-input,input{width:100%;height:44px;border-radius:4px;margin:10px auto;font-size:15px}"
-"input{background:#f1f1f1;border:0;padding:0 15px}body{background:#3498db;font-family:sans-serif;font-size:14px;color:#777}"
-"#file-input{padding:0;border:1px solid #ddd;line-height:44px;text-align:left;display:block;cursor:pointer}"
-"#bar,#prgbar{background-color:#f1f1f1;border-radius:10px}#bar{background-color:#3498db;width:0%;height:10px}"
-"form{background:#fff;max-width:258px;margin:75px auto;padding:30px;border-radius:5px;text-align:center}"
-".btn{background:#3498db;color:#fff;cursor:pointer}</style>";
-
-/*
- * Login page
- */
-
- const char* loginIndex1 = 
-"";
 
 void handleCMD()
 {
@@ -188,7 +172,7 @@ void handleCMD()
       rtc.adjust(DateTime(dY+2000,dM,dD,dh,dm,ds));
     }
     else {
-      sprintf(shtml,"invalid format, plese Usage http://x.x.x.x/cmd?dt=yyyy-mm-dd&tm=hh:mm:ss");
+      sprintf(shtml,"invalid format, plese Usage http://x.x.x.x/?dt=yyyy-mm-dd&tm=hh:mm:ss");
     }
   }
   else {
