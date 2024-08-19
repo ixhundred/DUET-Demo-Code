@@ -21,6 +21,7 @@ int j;
 #define PMOSI 13
 #define PMISO 11  
 
+/*
 #include "SX1262.h"
 SX1262 LoRa1262(PNSS, PRST, PBUSY_IRQ, PDIO1);	//define a object of class SX1262.
 loRa_Para_t	lora_para;	//define a struct to hold lora parameters.
@@ -38,6 +39,7 @@ uint8_t state;
 bool temp;
 
 char databuff[200];
+*/
 
 #include "RTClib.h"
 RTC_PCF8563 rtc;
@@ -309,7 +311,7 @@ void setup() {
   Wire.begin(4,3);
   strip.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();  // Turn OFF all pixels ASAP
-
+/*
 	lora_para.rf_freq    = 920000000; //434500000
 	lora_para.tx_power   = 10;	//-9~22
 	lora_para.lora_sf    = LORA_SF7;
@@ -326,7 +328,7 @@ void setup() {
   else {
     Serial.println("#LoRa1262 init Ok.");
   }
-
+*/
   if (! rtc.begin()) {
     Serial.println("#Couldn't find RTC.");
   }
