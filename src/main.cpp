@@ -2,13 +2,7 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_NeoPixel.h>
-//#include <mySD.h>
-//File myFile;
 
-// change this to match your SD shield or module;
-//     Arduino Ethernet shield: pin 4
-//     Adafruit SD shields and modules: pin 10
-//     Sparkfun SD shield: pin 8
 const int chipSelect = 4;
 
 #define RGBLED_PIN 48 // Pin where NeoPixels are connected
@@ -16,38 +10,34 @@ const int chipSelect = 4;
 Adafruit_NeoPixel strip(1, RGBLED_PIN, NEO_GRB + NEO_KHZ400);
 int j;
 
-#include "SX1262.h"
-#define PNSS  15	//10  
+#define PNSS  10	//10 (DUET) 
 #define PRST  14  
 #define PBUSY_IRQ  21	
 #define PDIO0 -1  
 #define PDIO1 9 	//9
 #define PDIO2 -1  
-#define PDIO3 -1  
+#define PDIO3 -1
+#define PSCK  12
+#define PMOSI 13
+#define PMISO 11  
+
+#include "SX1262.h"
 SX1262 LoRa1262(PNSS, PRST, PBUSY_IRQ, PDIO1);	//define a object of class SX1262.
 loRa_Para_t	lora_para;	//define a struct to hold lora parameters.
 int8_t power_table[32]={-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22};
 uint8_t sf_table[8]={LORA_SF5,LORA_SF6,LORA_SF7,LORA_SF8,LORA_SF9,LORA_SF10,LORA_SF11,LORA_SF12};
 uint8_t bw_table[10]={LORA_BW_7,LORA_BW_10,LORA_BW_15,LORA_BW_20,LORA_BW_31,LORA_BW_41,LORA_BW_62,LORA_BW_125,LORA_BW_250,LORA_BW_500};
 uint8_t cr_table[4]={LORA_CR_4_5,LORA_CR_4_6,LORA_CR_4_7,LORA_CR_4_8};
-uint8_t tx_buf[]={"LoRa Message Ok"};
+uint8_t tx_buf[200]={"LoRa Message Ok"};
 uint16_t tx_cnt = 0;
-uint8_t rx_buf[20]={"LoRa Message OK"};
+uint8_t rx_buf[200]={"LoRa Message OK"};
 uint16_t rx_cnt = 0;
 uint16_t rx_size = 0;
 uint8_t val;
 uint8_t state;
 bool temp;
 
-#include <FS.h>
-#include <SD.h>
-#define SCK 12
-#define MISO  11
-#define MOSI  13
-#define SS  PNSS
-#define SS2 16
-//#include <SPI.h>
-
+char databuff[200];
 
 #include "RTClib.h"
 RTC_PCF8563 rtc;
@@ -123,7 +113,7 @@ ulong wifistarttime = 0;
 
 uint8_t pwd_c;
 String wifissid = "LambdaNu";
-String wifipassword = "01234567890";
+String wifipassword = "0818090157";
 char pwd_ch;
 uint8_t cretry = 0;
 
@@ -302,163 +292,6 @@ void enable_wifi()
 
 }
 
-void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
-    Serial.printf("Listing directory: %s\n", dirname);
-
-    File root = fs.open(dirname);
-    if(!root){
-        Serial.println("Failed to open directory");
-        return;
-    }
-    if(!root.isDirectory()){
-        Serial.println("Not a directory");
-        return;
-    }
-
-    File file = root.openNextFile();
-    while(file){
-        if(file.isDirectory()){
-            Serial.print("  DIR : ");
-            Serial.println(file.name());
-            if(levels){
-                listDir(fs, file.path(), levels -1);
-            }
-        } else {
-            Serial.print("  FILE: ");
-            Serial.print(file.name());
-            Serial.print("  SIZE: ");
-            Serial.println(file.size());
-        }
-        file = root.openNextFile();
-    }
-}
-
-void createDir(fs::FS &fs, const char * path){
-    Serial.printf("Creating Dir: %s\n", path);
-    if(fs.mkdir(path)){
-        Serial.println("Dir created");
-    } else {
-        Serial.println("mkdir failed");
-    }
-}
-
-void removeDir(fs::FS &fs, const char * path){
-    Serial.printf("Removing Dir: %s\n", path);
-    if(fs.rmdir(path)){
-        Serial.println("Dir removed");
-    } else {
-        Serial.println("rmdir failed");
-    }
-}
-
-void readFile(fs::FS &fs, const char * path){
-    Serial.printf("Reading file: %s\n", path);
-
-    File file = fs.open(path);
-    if(!file){
-        Serial.println("Failed to open file for reading");
-        return;
-    }
-
-    Serial.print("Read from file: ");
-    while(file.available()){
-        Serial.write(file.read());
-    }
-    file.close();
-}
-
-void writeFile(fs::FS &fs, const char * path, const char * message){
-    Serial.printf("Writing file: %s\n", path);
-
-    File file = fs.open(path, FILE_WRITE);
-    if(!file){
-        Serial.println("Failed to open file for writing");
-        return;
-    }
-    if(file.print(message)){
-        Serial.println("File written");
-    } else {
-        Serial.println("Write failed");
-    }
-    file.close();
-}
-
-void appendFile(fs::FS &fs, const char * path, const char * message){
-    Serial.printf("Appending to file: %s\n", path);
-
-    File file = fs.open(path, FILE_APPEND);
-    if(!file){
-        Serial.println("Failed to open file for appending");
-        return;
-    }
-    if(file.print(message)){
-        Serial.println("Message appended");
-    } else {
-        Serial.println("Append failed");
-    }
-    file.close();
-}
-
-void renameFile(fs::FS &fs, const char * path1, const char * path2){
-    Serial.printf("Renaming file %s to %s\n", path1, path2);
-    if (fs.rename(path1, path2)) {
-        Serial.println("File renamed");
-    } else {
-        Serial.println("Rename failed");
-    }
-}
-
-void deleteFile(fs::FS &fs, const char * path){
-    Serial.printf("Deleting file: %s\n", path);
-    if(fs.remove(path)){
-        Serial.println("File deleted");
-    } else {
-        Serial.println("Delete failed");
-    }
-}
-
-void testFileIO(fs::FS &fs, const char * path){
-    File file = fs.open(path);
-    static uint8_t buf[512];
-    size_t len = 0;
-    uint32_t start = millis();
-    uint32_t end = start;
-    if(file){
-        len = file.size();
-        size_t flen = len;
-        start = millis();
-        while(len){
-            size_t toRead = len;
-            if(toRead > 512){
-                toRead = 512;
-            }
-            file.read(buf, toRead);
-            len -= toRead;
-        }
-        end = millis() - start;
-        Serial.printf("%u bytes read for %u ms\n", flen, end);
-        file.close();
-    } else {
-        Serial.println("Failed to open file for reading");
-    }
-
-
-    file = fs.open(path, FILE_WRITE);
-    if(!file){
-        Serial.println("Failed to open file for writing");
-        return;
-    }
-
-    size_t i;
-    start = millis();
-    for(i=0; i<2048; i++){
-        file.write(buf, 512);
-    }
-    end = millis() - start;
-    Serial.printf("%u bytes written for %u ms\n", 2048 * 512, end);
-    file.close();
-}
-
 void setup() {
   delay(2000);
   // put your setup code here, to run once:
@@ -471,7 +304,6 @@ void setup() {
  	SPI.setFrequency(2000000);
 
   pinMode(SS,OUTPUT);
-  pinMode(SS2,OUTPUT);
 
 	SPI.begin(SCK, MISO, MOSI, PNSS); //sck, miso, mosi, ss
   Wire.begin(4,3);
@@ -484,6 +316,7 @@ void setup() {
 	lora_para.band_width = LORA_BW_125;
 	lora_para.code_rate  = LORA_CR_4_5;
 	lora_para.payload_size = sizeof(tx_buf);
+  LoRa1262.RxInit();
 
   temp = LoRa1262.Init(&lora_para);
 	if(0 == temp)
@@ -493,7 +326,6 @@ void setup() {
   else {
     Serial.println("#LoRa1262 init Ok.");
   }
-  digitalWrite(SS,HIGH);
 
   if (! rtc.begin()) {
     Serial.println("#Couldn't find RTC.");
@@ -528,74 +360,6 @@ void setup() {
   pinMode(6,OUTPUT);
   pinMode(7,OUTPUT);
   pinMode(8,OUTPUT);
-
-  digitalWrite(SS2,LOW);
-  Serial.println("#Init SDCard...");
- 	//SPI.setFrequency(2000000);
-	//SPI.begin(SCK, MISO, MOSI, PNSS); //sck, miso, mosi, ss
-  if(!SD.begin()){
-      Serial.println("Card Mount Failed");
-  }
-  else {
-    uint8_t cardType = SD.cardType();
-
-    if(cardType == CARD_NONE){
-        Serial.println("#No SD card attached");
-    }
-    else {
-      Serial.print("SD Card Type: ");
-      if(cardType == CARD_MMC){
-          Serial.println("MMC");
-      } else if(cardType == CARD_SD){
-          Serial.println("SDSC");
-      } else if(cardType == CARD_SDHC){
-          Serial.println("SDHC");
-      } else {
-          Serial.println("UNKNOWN");
-      }
-    }
-
-    uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-    Serial.printf("SD Card Size: %lluMB\n", cardSize);
-
-#ifdef TESTSD
-    listDir(SD, "/", 0);
-    createDir(SD, "/mydir");
-    listDir(SD, "/", 0);
-    removeDir(SD, "/mydir");
-    listDir(SD, "/", 2);
-    writeFile(SD, "/hello.txt", "Hello ");
-    appendFile(SD, "/hello.txt", "World!\n");
-    readFile(SD, "/hello.txt");
-    deleteFile(SD, "/foo.txt");
-    renameFile(SD, "/hello.txt", "/foo.txt");
-    readFile(SD, "/foo.txt");
-    //testFileIO(SD, "/test.txt");
-#endif  
-    Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-    Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
-
-    Serial.println("Reading config file: /setup.txt");
-
-    File file = SD.open("/setup.txt");
-    if(!file){
-        Serial.println("#Failed to open config-file, use default!!");
-    }
-    else {
-      while(file.available()){
-        String line = file.readStringUntil('\n');
-        line.trim();
-        if (line.length() > 5) {
-          if(line.charAt(0) != '#' && line.charAt(0) != ';') {
-            Serial.println(line);
-          }
-        }
-      }
-    }
-    file.close();
-  }
-  digitalWrite(SS2,HIGH);
-
 }
 
 void loop() {
@@ -626,7 +390,8 @@ void loop() {
   digitalWrite(8,digitalRead(8)^1);
   // put your main code here, to run repeatedly:
   j = (j%8)==0?j+1:j;
-  Serial.printf("#Hello %d, Num LED=%d, color=%d (%c,%c,%c)\r\n",j,strip.numPixels(),j%8,(((j%8)&(1<<0))==0?'-':'R'), (((j%8)&(1<<1))==0?'-':'G'), (((j%8)&(1<<2))==0?'-':'B'));
+  sprintf(databuff,"#Hello %d, Num LED=%d, color=%d (%c,%c,%c)",j,strip.numPixels(),j%8,(((j%8)&(1<<0))==0?'-':'R'), (((j%8)&(1<<1))==0?'-':'G'), (((j%8)&(1<<2))==0?'-':'B'));
+  Serial.println(databuff);
   //colorWipe(strip.Color((((i%8)&(1<<0))==0?0:1)*128, (((i%8)&(1<<1))==0?0:1)*128, (((i%8)&(1<<2))==0?0:1)*128), 0);  
   for(int i = 0; i<(j==2?20:MAX); ++i) {
     strip.setPixelColor(0,strip.Color((((j%8)&(1<<0))==0?0:1)*i, (((j%8)&(1<<1))==0?0:1)*i, (((j%8)&(1<<2))==0?0:1)*i));
@@ -655,5 +420,6 @@ void loop() {
     now.second(),
     daysOfTheWeek[now.dayOfTheWeek()]
   );
+
 }
 
