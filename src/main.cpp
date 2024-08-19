@@ -38,8 +38,9 @@ uint8_t val;
 uint8_t state;
 bool temp;
 
-char databuff[200];
 */
+
+char databuff[200];
 
 #include "RTClib.h"
 RTC_PCF8563 rtc;
