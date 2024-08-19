@@ -300,7 +300,7 @@ void setup() {
   // put your setup code here, to run once:
   EEPROM.begin(512);
   Serial.begin(115200);
-  esp_task_wdt_init(WDT_TIMEOUT, true);  // enable panic so ESP32 restarts
+  //esp_task_wdt_init(WDT_TIMEOUT, true);  // enable panic so ESP32 restarts
   esp_task_wdt_add(NULL);  
   enable_wifi();
 
