@@ -21,14 +21,16 @@ void setup() {
   strip.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();  // Turn OFF all pixels ASAP
 
-  while(1) {
+  //while(1) {
     strip.setPixelColor(0,strip.Color(255,255,255));
+    strip.show();
     Serial.println("test 1");
     delay(1000);
     strip.setPixelColor(0,strip.Color(255,0,0));
+    strip.show();
     Serial.println("test 2");
     delay(1000);
-  }
+  //}
 }
 
 void loop() {
